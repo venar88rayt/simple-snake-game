@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Snake Game</title>
+    <title>FLOP Snake Game</title>
     <style>
         body {
-            background-color: #1a1a1a;
+            background-color: #081226;
             color: white;
             font-family: Arial, sans-serif;
             display: flex;
@@ -15,21 +15,60 @@
             justify-content: center;
             height: 100vh;
             margin: 0;
+            overflow: hidden;
+        }
+        #gameContainer {
+            position: relative;
+            width: 600px;
+            height: 400px;
         }
         canvas {
-            border: 4px solid #4CAF50;
-            background-color: #000;
+            position: absolute;
+            top: 0;
+            left: 0;
+            border: 4px solid #00bfff;
+            background-color: transparent;
+            z-index: 2;
+        }
+        .bg-watermark {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1;
+            user-select: none;
+            pointer-events: none;
+            opacity: 0.15;
+        }
+        .bg-watermark svg {
+            width: 80%;
+            height: auto;
         }
         #score {
             font-size: 24px;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
+            font-weight: bold;
+            letter-spacing: 1px;
         }
     </style>
 </head>
 <body>
 
     <div id="score">Score: 0</div>
-    <canvas id="gameCanvas" width="400" height="400"></canvas>
+    
+    <div id="gameContainer">
+        <!-- Текстуроване SVG лого FLOP на фоні гри -->
+        <div class="bg-watermark">
+            <svg viewBox="0 0 540 180" xmlns="http://w3.org">
+                <text x="50%" y="65%" font-family="Arial Black, Impact, sans-serif" font-size="140" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="5">FLOP</text>
+            </svg>
+        </div>
+        <canvas id="gameCanvas" width="600" height="400"></canvas>
+    </div>
 
     <script>
         const canvas = document.getElementById("gameCanvas");
@@ -37,10 +76,11 @@
         const scoreElement = document.getElementById("score");
 
         const gridSize = 20;
-        const tileCount = canvas.width / gridSize;
+        const tileCountX = canvas.width / gridSize;
+        const tileCountY = canvas.height / gridSize;
 
-        let snake = [{ x: 10, y: 10 }];
-        let food = { x: 5, y: 5 };
+        let snake = [{ x: 5, y: 10 }];
+        let food = { x: 15, y: 10 };
         let dx = 1;
         let dy = 0;
         let score = 0;
@@ -60,13 +100,14 @@
         }
 
         function clearCanvas() {
-            ctx.fillStyle = "black";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
         }
 
         function drawSnake() {
-            ctx.fillStyle = "#4CAF50";
-            snake.forEach(part => {
+            ctx.fillStyle = "#00bfff"; // Фірмовий блакитний для змійки
+            snake.forEach((part, index) => {
+                // Голова трохи яскравіша
+                ctx.fillStyle = index === 0 ? "#00d2ff" : "#00bfff";
                 ctx.fillRect(part.x * gridSize, part.y * gridSize, gridSize - 2, gridSize - 2);
             });
         }
@@ -85,14 +126,13 @@
         }
 
         function drawFood() {
-            ctx.fillStyle = "red";
+            ctx.fillStyle = "#ffffff"; // Біла їжа під стиль квадратів логотипу
             ctx.fillRect(food.x * gridSize, food.y * gridSize, gridSize - 2, gridSize - 2);
         }
 
         function generateFood() {
-            food.x = Math.floor(Math.random() * tileCount);
-            food.y = Math.floor(Math.random() * tileCount);
-            // Перевірка, щоб їжа не з'явилася на змійці
+            food.x = Math.floor(Math.random() * tileCountX);
+            food.y = Math.floor(Math.random() * tileCountY);
             if (snake.some(part => part.x === food.x && part.y === food.y)) {
                 generateFood();
             }
@@ -101,11 +141,11 @@
         function hasGameEnded() {
             const head = snake[0];
             const hitLeftWall = head.x < 0;
-            const hitRightWall = head.x >= tileCount;
-            const hitToptWall = head.y < 0;
-            const hitBottomWall = head.y >= tileCount;
+            const hitRightWall = head.x >= tileCountX;
+            const hitTopWall = head.y < 0;
+            const hitBottomWall = head.y >= tileCountY;
 
-            if (hitLeftWall || hitRightWall || hitToptWall || hitBottomWall) return true;
+            if (hitLeftWall || hitRightWall || hitTopWall || hitBottomWall) return true;
 
             for (let i = 4; i < snake.length; i++) {
                 if (snake[i].x === head.x && snake[i].y === head.y) return true;
@@ -127,8 +167,8 @@
         }
 
         function resetGame() {
-            snake = [{ x: 10, y: 10 }];
-            food = { x: 5, y: 5 };
+            snake = [{ x: 5, y: 10 }];
+            food = { x: 15, y: 10 };
             dx = 1;
             dy = 0;
             score = 0;
@@ -136,7 +176,8 @@
         }
 
         document.addEventListener("keydown", changeDirection);
-        gameInterval = setInterval(main, 200);
+        // Швидкість зафіксовано на оптимальних 140мс через збільшене поле
+        gameInterval = setInterval(main, 140);
     </script>
 </body>
 </html>
